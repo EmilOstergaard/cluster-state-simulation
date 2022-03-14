@@ -145,7 +145,7 @@ for i in range(2**(num_modes-1)-1):
 total_nullifier_combinations = []
 
 print('Finding nullifier combinations...')
-for num_operators in range(2,4):
+for num_operators in range(2,7):
 
     nullifier_combinations = []
 
@@ -206,7 +206,7 @@ for num_operators in range(2,4):
 print('All nullifier combinations found.')
 
 def find_solution(bipartition):
-    sqz_limit = 6
+    sqz_limit = 4
     value = np.infty
     bipartition_matrix = bipartition[0]
     bipartition_id = bipartition[1]
@@ -239,19 +239,21 @@ def find_solution(bipartition):
                             pass
                     if value <= sqz_limit:
                         break
-    return [value, operators, bipartition_id, bipartition_info]
+    return [value, operators, bipartition_id, bipartition_info[0], bipartition_info[1]]
 
 if __name__ == '__main__':
 
     print('Starting solution search...')
     solution = []
-    pool = Pool(2)
-    solution.append(pool.map(find_solution, bipartitions[600:603]))
+    pool = Pool(cpu_count())
+    solution.append(pool.map(find_solution, bipartitions))
     # import os
     import csv
 
     # # os.system('touch clustetr_state_simulation_data.csv')
     with open('cluster_state_simulation_data.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)
+        writer.writerow(['Squeezing [dB]','Operators','Bipartition ID', 'Bipartition 1', 'Bipartition 2'])
         for row in solution:
-            writer.writerow([row])
+            for line in row:
+                writer.writerow(line)

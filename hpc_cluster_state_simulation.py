@@ -2,6 +2,8 @@ import numpy as np
 import math
 import itertools
 from multiprocessing import Pool, cpu_count
+import csv
+from tqdm import *
 
 def binary(x,n):
     num = x
@@ -145,7 +147,7 @@ for i in range(2**(num_modes-1)-1):
 total_nullifier_combinations = []
 
 print('Finding nullifier combinations...')
-for num_operators in range(2,7):
+for num_operators in range(2,4):
 
     nullifier_combinations = []
 
@@ -239,21 +241,18 @@ def find_solution(bipartition):
                             pass
                     if value <= sqz_limit:
                         break
-    return [value, operators, bipartition_id, bipartition_info[0], bipartition_info[1]]
+    with open('cluster_state_simulation_data.csv', 'a', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        writer.writerow([value, operators, bipartition_id, bipartition_info[0], bipartition_info[1]])
 
 if __name__ == '__main__':
 
-    print('Starting solution search...')
-    solution = []
-    pool = Pool(cpu_count())
-    solution.append(pool.map(find_solution, bipartitions))
-    # import os
-    import csv
+    print('Starting search...')
+    # bipartitions = bipartitions[:100]
 
-    # # os.system('touch clustetr_state_simulation_data.csv')
     with open('cluster_state_simulation_data.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)
         writer.writerow(['Squeezing [dB]','Operators','Bipartition ID', 'Bipartition 1', 'Bipartition 2'])
-        for row in solution:
-            for line in row:
-                writer.writerow(line)
+
+    with Pool(cpu_count()) as pool:
+        r = list(tqdm(pool.imap(find_solution, bipartitions), total=len(bipartitions)))

@@ -27,7 +27,7 @@ def binary_inv(x,n):
 
 def prefactor_combination(n):
     array = []
-    for i in range(n**2):
+    for i in range(n**2+1):
         array.append(binary(i,n))
     return array
     
@@ -144,7 +144,8 @@ for i in range(2**(num_modes-1)-1):
 
 total_nullifier_combinations = []
 
-for num_operators in range(2,6):
+print('Finding nullifier combinations...')
+for num_operators in range(2,4):
 
     nullifier_combinations = []
 
@@ -161,10 +162,10 @@ for num_operators in range(2,6):
         # combine all the x-nullifiers with all possible combinations of + and - prefactors
         for i, n_x_combination in enumerate(n_x_combinations):
             if len(n_x_combination) > 1:
-                    for combination in prefactor_combination(len(n_x_combination)):
-                        operator = Nullifier()
-                        operator_iden = ''
-                        for k, index in enumerate(n_x_combination):
+                    for combination in prefactor_combination(len(n_x_combination)-1):
+                        operator = n_xs[n_x_combination[0]]
+                        operator_iden = 'n_x_%d'%n_x_combination[0]
+                        for k, index in enumerate(n_x_combination[1:]):
                             if combination[k] == 0:
                                 operator = operator + n_xs[index]
                                 operator_iden += '+n_x_%d'%index
@@ -181,10 +182,10 @@ for num_operators in range(2,6):
         # combine all the p-nullifiers with all possible combinations of + and - prefactors
         for i, n_p_combination in enumerate(n_p_combinations):
             if len(n_p_combination) > 1:
-                    for combination in prefactor_combination(len(n_p_combination)):
-                        operator = Nullifier()
-                        operator_iden = ''
-                        for k, index in enumerate(n_p_combination):
+                    for combination in prefactor_combination(len(n_p_combination)-1):
+                        operator = n_ps[n_p_combination[0]]
+                        operator_iden = 'n_p_%d'%n_p_combination[0]
+                        for k, index in enumerate(n_p_combination[1:]):
                             if combination[k] == 0:
                                 operator = operator + n_ps[index]
                                 operator_iden += '+n_p_%d'%index
@@ -202,13 +203,15 @@ for num_operators in range(2,6):
     
     total_nullifier_combinations.append(nullifier_combinations)
 
+print('All nullifier combinations found.')
+
 def find_solution(bipartition):
     sqz_limit = 6
     value = np.infty
     bipartition_matrix = bipartition[0]
     bipartition_id = bipartition[1]
     bipartition_info = bipartition[2]
-    for num_nullifiers in range(2):
+    for num_nullifiers in range(len(total_nullifier_combinations)):
         if value <= sqz_limit:
             break
         nullifier_combinations = total_nullifier_combinations[num_nullifiers]
@@ -238,14 +241,17 @@ def find_solution(bipartition):
                         break
     return [value, operators, bipartition_id, bipartition_info]
 
+if __name__ == '__main__':
 
-solution = []
-pool = Pool(cpu_count())
-solution.append(pool.map(find_solution, bipartitions[:1000]))
-import os
-import csv
+    print('Starting solution search...')
+    solution = []
+    pool = Pool(2)
+    solution.append(pool.map(find_solution, bipartitions[600:603]))
+    # import os
+    import csv
 
-# os.system('touch clustetr_state_simulation_data.csv')
-with open('cluster_state_simulation_data.csv', 'w', encoding='UTF8') as f:
-    writer = csv.writer(f)
-    writer.writerows()
+    # # os.system('touch clustetr_state_simulation_data.csv')
+    with open('cluster_state_simulation_data.csv', 'w', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        for row in solution:
+            writer.writerow([row])

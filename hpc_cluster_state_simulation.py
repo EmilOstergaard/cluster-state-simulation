@@ -41,14 +41,8 @@ def mod2array(pos, neg):
         array[num-1] = -1
     return array
 
-def operatorOverlap(x,p):
-    for i in range(len(x)):
-        if (x[i] != 0) & (p[i] != 0):
-            return True
-            break
-        else:
-            pass
-    return False
+def operatorOverlap(x, p):
+    return np.count_nonzero(x * p) > 0
 
 class Nullifier:
     def __init__(self, unit_cell_modes = np.zeros(16), boundary_modes = np.zeros(112)):
@@ -138,8 +132,8 @@ for i in range(2**(num_modes-1)-1):
         else:
             partition_2.append(k+1)
 
-    partition_1_matrix = np.diag(bin_num)
-    partition_2_matrix = np.diag(bin_num_inv)
+    partition_1_matrix = np.asarray(bin_num, dtype='float')
+    partition_2_matrix = np.asarray(bin_num_inv, dtype='float')
 
     bipartition_id = i
     bipartitions.append([[partition_1_matrix,partition_2_matrix], bipartition_id, (partition_1, partition_2)])
@@ -203,20 +197,22 @@ for num_operators in range(2,4):
 
         nullifier_combinations.append([total_n_x_combinations,total_n_p_combinations])
     
-    total_nullifier_combinations.append(nullifier_combinations)
+    total_nullifier_combinations.append([nullifier_combinations, num_operators])
 
 print('All nullifier combinations found.')
 
 def find_solution(bipartition):
     sqz_limit = 4
     value = np.infty
+    value_raw = 0
     bipartition_matrix = bipartition[0]
     bipartition_id = bipartition[1]
     bipartition_info = bipartition[2]
     for num_nullifiers in range(len(total_nullifier_combinations)):
         if value <= sqz_limit:
             break
-        nullifier_combinations = total_nullifier_combinations[num_nullifiers]
+        nullifier_combinations = total_nullifier_combinations[num_nullifiers][0]
+        num_operators = total_nullifier_combinations[num_nullifiers][1]
         for [total_n_x_combinations, total_n_p_combinations] in nullifier_combinations:
             if value <= sqz_limit:
                 break
@@ -228,14 +224,15 @@ def find_solution(bipartition):
                         pass
                     
                     else:
-                        h_j1 = bipartition_matrix[0]@x_operator.unit_cell_modes
-                        g_j1 = bipartition_matrix[0]@p_operator.unit_cell_modes
-                        h_j2 = bipartition_matrix[1]@x_operator.unit_cell_modes
-                        g_j2 = bipartition_matrix[1]@p_operator.unit_cell_modes
+                        h_j1 = bipartition_matrix[0] * x_operator.unit_cell_modes
+                        g_j1 = bipartition_matrix[0] * p_operator.unit_cell_modes
+                        h_j2 = bipartition_matrix[1] * x_operator.unit_cell_modes
+                        g_j2 = bipartition_matrix[1] * p_operator.unit_cell_modes
                         try:
-                            temp_value = abs(10*math.log10((np.abs(h_j1.dot(g_j1))+np.abs(h_j2.dot(g_j2)))/(8*num_operators)))
-                            if temp_value < value:
-                                value = temp_value
+                            temp_value = abs(h_j1 @ g_j1)+abs(h_j2 @ g_j2)
+                            if temp_value > value_raw:
+                                value_raw = temp_value
+                                value = abs(10*math.log10(value_raw/(8 * num_operators)))
                                 operators = x_operator_iden, p_operator_iden
                         except:
                             pass
@@ -248,7 +245,7 @@ def find_solution(bipartition):
 if __name__ == '__main__':
 
     print('Starting search...')
-    # bipartitions = bipartitions[:100]
+    bipartitions = bipartitions[:100]
 
     with open('cluster_state_simulation_data.csv', 'w', encoding='UTF8') as f:
         writer = csv.writer(f)

@@ -42,13 +42,7 @@ def mod2array(pos, neg):
     return array
 
 def operatorOverlap(x,p):
-    for i in range(len(x)):
-        if (x[i] != 0) & (p[i] != 0):
-            return True
-            break
-        else:
-            pass
-    return False
+    return np.count_nonzero(x * p) > 0
 
 class Nullifier:
     def __init__(self, unit_cell_modes = np.zeros(16), boundary_modes = np.zeros(112)):
@@ -138,8 +132,8 @@ for i in range(2**(num_modes-1)-1):
         else:
             partition_2.append(k+1)
 
-    partition_1_matrix = np.diag(bin_num)
-    partition_2_matrix = np.diag(bin_num_inv)
+    partition_1_matrix = np.asarray(bin_num, dtype='float')
+    partition_2_matrix = np.asarray(bin_num_inv, dtype='float')
 
     bipartition_id = i
     bipartitions.append([[partition_1_matrix,partition_2_matrix], bipartition_id, (partition_1, partition_2)])
@@ -147,7 +141,7 @@ for i in range(2**(num_modes-1)-1):
 total_nullifier_combinations = []
 
 print('Finding nullifier combinations...')
-for num_operators in range(2,4):
+for num_operators in range(2,6):
 
     nullifier_combinations = []
 
@@ -228,10 +222,10 @@ def find_solution(bipartition):
                         pass
                     
                     else:
-                        h_j1 = bipartition_matrix[0]@x_operator.unit_cell_modes
-                        g_j1 = bipartition_matrix[0]@p_operator.unit_cell_modes
-                        h_j2 = bipartition_matrix[1]@x_operator.unit_cell_modes
-                        g_j2 = bipartition_matrix[1]@p_operator.unit_cell_modes
+                        h_j1 = bipartition_matrix[0] * x_operator.unit_cell_modes
+                        g_j1 = bipartition_matrix[0] * p_operator.unit_cell_modes
+                        h_j2 = bipartition_matrix[1] * x_operator.unit_cell_modes
+                        g_j2 = bipartition_matrix[1] * p_operator.unit_cell_modes
                         try:
                             temp_value = abs(10*math.log10((np.abs(h_j1.dot(g_j1))+np.abs(h_j2.dot(g_j2)))/(8*num_operators)))
                             if temp_value < value:

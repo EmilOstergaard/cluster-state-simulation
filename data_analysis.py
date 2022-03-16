@@ -5,7 +5,7 @@ from multiprocessing import Pool, cpu_count
 import csv
 from tqdm import *
 
-sqz_limit = 4
+sqz_limit = 5
 remaining_modes = 0
 
 with open('data.csv') as f:

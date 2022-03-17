@@ -119,12 +119,12 @@ def find_solution(bipartition):
     bipartition_id = bipartition[1]
     bipartition_info = bipartition[2]
     value = np.inf
-    num_operators = 2
+    num_operators = 7
     while value > sqz_limit:
         nullifier_combinations = []
         print(num_operators)
 
-        for n in range(num_operators-1):
+        for n in range(2):
             if value <= sqz_limit:
                 break
             
@@ -176,31 +176,35 @@ def find_solution(bipartition):
                     operator_iden = 'n_p_%d'%index
                     total_n_p_combinations.append([operator,operator_iden])
 
+            nullifier_combinations = [total_n_x_combinations,total_n_p_combinations]
 
             print('Starting search...')
 
-            for x_operator, x_operator_iden in tqdm(total_n_x_combinations):
+            for [total_n_x_combinations, total_n_p_combinations] in nullifier_combinations:
                 if value <= sqz_limit:
                     break
-                for p_operator, p_operator_iden in total_n_p_combinations:
-                    if operatorOverlap(x_operator.boundary_modes, p_operator.boundary_modes):
-                        pass
-                    else:
-
-                        h_j1 = bipartition_matrix[0] * x_operator.unit_cell_modes
-                        g_j1 = bipartition_matrix[0] * p_operator.unit_cell_modes
-                        h_j2 = bipartition_matrix[1] * x_operator.unit_cell_modes
-                        g_j2 = bipartition_matrix[1] * p_operator.unit_cell_modes
-                        try:
-                            value = abs(10*math.log10((abs(h_j1 @ g_j1) + abs(h_j2 @ g_j2))/(8*num_operators)))
-                            operators_iden = [x_operator_iden, p_operator_iden]
-                            if value <= sqz_limit:
-                                with open('bipartition_data.csv', 'a', encoding='UTF8') as f:
-                                    writer = csv.writer(f)
-                                    writer.writerow([value, operators_iden[0], operators_iden[1], bipartition_id, bipartition_info[0], bipartition_info[1]])
-                                break
-                        except:
+                for x_operator, x_operator_iden in total_n_x_combinations:
+                    if value <= sqz_limit:
+                        break
+                    for p_operator, p_operator_iden in total_n_p_combinations:
+                        if operatorOverlap(x_operator.boundary_modes, p_operator.boundary_modes):
                             pass
+                        else:
+
+                            h_j1 = bipartition_matrix[0] * x_operator.unit_cell_modes
+                            g_j1 = bipartition_matrix[0] * p_operator.unit_cell_modes
+                            h_j2 = bipartition_matrix[1] * x_operator.unit_cell_modes
+                            g_j2 = bipartition_matrix[1] * p_operator.unit_cell_modes
+                            try:
+                                value = -10*math.log10((abs(h_j1 @ g_j1) + abs(h_j2 @ g_j2))/(8*num_operators))
+                                operators_iden = [x_operator_iden, p_operator_iden]
+                                if value <= sqz_limit:
+                                    with open('bipartition_data.csv', 'a', encoding='UTF8') as f:
+                                        writer = csv.writer(f)
+                                        writer.writerow([value, operators_iden[0], operators_iden[1], bipartition_id, bipartition_info[0], bipartition_info[1]])
+                                    break
+                            except:
+                                pass
         num_operators += 1
             
 

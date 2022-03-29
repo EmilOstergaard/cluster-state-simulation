@@ -9,7 +9,7 @@ highest = 0
 total = 0
 values = []
 
-with open('all_modes_4db_new.csv') as f:
+with open('all_modes_36db.csv') as f:
     reader = csv.reader(f)
     next(reader)
     for line in reader:

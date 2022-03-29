@@ -1,5 +1,5 @@
 import csv
-from new_approach import *
+from methods import *
 from tqdm import tqdm
 from multiprocessing import Pool, cpu_count
 

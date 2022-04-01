@@ -3,7 +3,7 @@ import csv
 from wsgiref.handlers import read_environ
 from matplotlib import pyplot
 
-sqz_limit = 3.6
+sqz_limit = 3
 remaining_modes = 0
 highest = 0
 total = 0
